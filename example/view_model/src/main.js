@@ -15,15 +15,14 @@ var MythreeManager = function()
 	return{
 		threeStart: threeStart,
 		changeModel: changeModel,
-		cleanScene: cleanScene
+		cleanScene: cleanScene,
+		printMessage: printMessage
 	};
 
 	function initManager(){
 		manager = new THREE.LoadingManager();
 				manager.onProgress = function ( item, loaded, total ) {
-
 					console.log( item, loaded, total );
-
 				};
 	}
 
@@ -54,6 +53,23 @@ var MythreeManager = function()
 		btn.appendChild(t);
 		btn.addEventListener("click",onImportOptionClick,false);
 		document.getElementById('ui').appendChild(btn);
+
+		var btn=document.createElement("BUTTON");
+		var t=document.createTextNode("Clean");
+		btn.appendChild(t);
+		btn.addEventListener("click",function(){cleanScene();render();printMessage(" Clean!!");},false);
+		document.getElementById('ui').appendChild(btn);
+		printMessage("  HI!! This is a model loader for dae, stl, obj formats and whose zip!!");
+	}
+
+	function printMessage(message){
+		var messageDiv=document.getElementById("messageDiv");
+		if(!messageDiv){
+			messageDiv=document.createElement("div");
+			messageDiv.id = "messageDiv";
+			document.getElementById('ui').appendChild(messageDiv);
+		}
+		messageDiv.innerHTML = message;
 	}
 
 	function initCamera() { 
@@ -150,8 +166,8 @@ var MythreeManager = function()
 	}
 
 	function initControls(){
-
-		controls = new THREE.TrackballControls(camera);
+		var container = document.getElementById('canvas3d');
+		controls = new THREE.TrackballControls(camera,container);
 
 		controls.rotateSpeed = 1.0;
 		controls.zoomSpeed = 1.2;
@@ -183,36 +199,8 @@ var MythreeManager = function()
 		//model.rotation.y += 0.01;
 
 		//renderer.clear(); 
+
 		renderer.render(scene, camera);
-	}
-
-	//block right button
-	function blockMenu(Evt){
-
-	  // window.event 是IE才有的物件
-	  if(window.event){
-	    Evt = window.event;
-	    Evt.returnValue = false;//取消IE預設事件
-	  }else
-	    Evt.preventDefault();//取消DOM預設事件
-	}
-
-	//mouseWheel
-	function MouseWheel (e) {
-	  e = e || window.event;
-	  //alert(['scrolled ', (( e.wheelDelta <= 0 || e.detail > 0) ? 'down' : 'up')].join(''));
-	}
-
-	function bindMouseEvent(){
-		// hook event listener on window object
-		if ('onmousewheel' in window) {
-		  window.onmousewheel = MouseWheel;
-		} else if ('onmousewheel' in document) {
-		  document.onmousewheel = MouseWheel;
-		} else if ('addEventListener' in window) {
-		  window.addEventListener("mousewheel", MouseWheel, false);
-		  window.addEventListener("DOMMouseScroll", MouseWheel, false);
-		}
 	}
 
 	function onWindowResize() {
@@ -247,20 +235,17 @@ var MythreeManager = function()
 
 
 	function threeStart() {
-		//document.oncontextmenu = blockMenu;
-		//bindMouseEvent();
-
-		window.addEventListener( 'resize', onWindowResize, false );
+		//window.addEventListener( 'resize', onWindowResize, false );
 		initFileInput();
 		initLoader();
 		initView();
-
 		initThree();
 		initCamera();
 		initControls();
 		initScene();   
 		initLight();
 
+		// load model exmaple code
 		//initObject();
 		//initSTL();
 		//initOBJ();
@@ -281,67 +266,27 @@ var Loader = function(threeManager){
 		var filename = file.name;
 		var extension = filename.split( '.' ).pop().toLowerCase();
 		threeManager.cleanScene();
+		var loadMessage = ""
 		if(extension ==='zip'){
+			loadFormat = "zip: ";
 			var zipModel = new ZipModel();
-
 			zipModel.getEntries(file,function(entries){
 				entries.forEach(function(entry) {
-					//loadUnZipFile(entry.filename);
-
-					/*zipModel.getEntryFile(entry, "Blob", function(blobURL) {
-						//loadUnZipFile(entry.filename);
-						var ex = 1;
-						}, function(current, total) {
-						
-					});*/
 					writer = new zip.BlobWriter();
 					var writer, zipFileEntry;
 					entry.getData(writer, function(blob) {
+							loadMessage += entry.filename;
+							loadMessage += "<br>";
+							threeManager.printMessage(loadMessage);
 							loadUnZipFile(entry.filename,blob);	
 					}, function(message){});
-					
 				});
 			});
-
-			/*model.getEntries(fileInput.files[0], function(entries) {
-				fileList.innerHTML = "";
-				entries.forEach(function(entry) {
-					var li = document.createElement("li");
-					var a = document.createElement("a");
-					a.textContent = entry.filename;
-					a.href = "#";
-					a.addEventListener("click", function(event) {
-						if (!a.download) {
-							download(entry, li, a);
-							event.preventDefault();
-							return false;
-						}
-					}, false);
-					li.appendChild(a);
-					fileList.appendChild(li);
-				});
-			});*/
-		
-
 		}else{
+			loadMessage += file.name;
 			loadUnZipFile(file.name,file);
+			threeManager.printMessage(loadMessage);
 		}
-	}
-
-	function download(entry, li, a) {
-			model.getEntryFile(entry, "RAM", function(blobURL) {
-				var clickEvent = document.createEvent("MouseEvent");
-				if (unzipProgress.parentNode)
-					unzipProgress.parentNode.removeChild(unzipProgress);
-				unzipProgress.value = 0;
-				unzipProgress.max = 0;
-				clickEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-				a.href = blobURL;
-				a.download = entry.filename;
-				a.dispatchEvent(clickEvent);
-				}, function(current, total) {
-				
-			});
 	}
 
 	function loadUnZipFile(name,data)
@@ -433,24 +378,6 @@ var ZipModel = function(){
 	function onerror(message) {
 		alert(message);
 	}
-
-	function createTempFile(callback) {
-		var tmpFilename = "tmp.dat";
-		requestFileSystem(TEMPORARY, 4 * 1024 * 1024 * 1024, function(filesystem) {
-			function create() {
-				filesystem.root.getFile(tmpFilename, {
-					create : true
-				}, function(zipFile) {
-					callback(zipFile);
-				});
-			}
-
-			filesystem.root.getFile(tmpFilename, null, function(entry) {
-				entry.remove(create, create);
-			}, create);
-		});
-	}
-
 	
 	var URL = obj.webkitURL || obj.mozURL || obj.URL;
 
@@ -459,27 +386,6 @@ var ZipModel = function(){
 			zip.createReader(new zip.BlobReader(file), function(zipReader) {
 				zipReader.getEntries(onend);
 			}, onerror);
-		},
-		getEntryFile : function(entry, creationMethod, onend, onprogress) {
-			var writer, zipFileEntry;
-
-			function getData() {
-				entry.getData(writer, function(blob) {
-					var blobURL = creationMethod == "Blob" ? URL.createObjectURL(blob) : zipFileEntry.toURL();
-					onend(blobURL);
-				}, onprogress);
-			}
-
-			if (creationMethod == "Blob") {
-				writer = new zip.BlobWriter();
-				getData();
-			} else {
-				createTempFile(function(fileEntry) {
-					zipFileEntry = fileEntry;
-					writer = new zip.FileWriter(zipFileEntry);
-					getData();
-				});
-			}
 		}
 	};
 };

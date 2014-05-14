@@ -2,7 +2,7 @@
 <html>
 	<head>
         <meta charset="UTF-8">
-        <title>lesson1-by-shawn.xie</title>
+        <title>ZipModelViewer</title>
         <!--引入Three.js-->
         <script src="../../build/three.min.js"></script>
         <script src="../../js/controls/TrackballControls.js"></script>
@@ -20,16 +20,29 @@
         <script src="src/main.js"></script>
         <style type="text/css">
             div#canvas3d{
-                  border: none;
-                  cursor: move;
-                  width: 800px;
-                  height: 600px;
-                  background-color: #EEEEEE;
-                }
+                border: none;
+                cursor: move;
+                width: 800px;
+                height: 600px;
+                margin-left: 5%;
+                margin-right: 5%;
+                background-color: #EEEEEE;
+            }
+            div#content
+            {
+                margin-left: 15%;
+                margin-right: 20%;
+                background: white;
+            }
+            body{
+                 background: black;
+            }
         </style>
     </head>
     <body onload='MythreeManager.threeStart();'>
-        <div id="canvas3d"></div>
-        <div id="ui"><div>
+        <div id="content">
+            <div id="canvas3d"></div>
+            <div id="ui"><div>
+        </div>
     </body>
 </html>
