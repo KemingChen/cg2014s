@@ -484,6 +484,11 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 	}
 
+	this.zoom = function zoom(delta){
+		_zoomStart.y = delta;
+	}
+
+
 	function touchstart( event ) {
 
 		if ( _this.enabled === false ) return;

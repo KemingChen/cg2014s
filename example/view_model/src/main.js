@@ -11,6 +11,8 @@ var MythreeManager = function()
 	var manager;
 	var fileInput;
 	var loader;
+	var zoom = 1;
+	var leapMotionController;
 
 	return{
 		threeStart: threeStart,
@@ -24,6 +26,106 @@ var MythreeManager = function()
 				manager.onProgress = function ( item, loaded, total ) {
 					console.log( item, loaded, total );
 				};
+	}
+
+	function initLeapMotion(){
+		leapMotionController = new Leap.Controller({ enableGestures: true });
+		leapMotionController.on( 'connect' , function(){
+	      console.log( 'Successfully connected.' );
+	    });
+	    leapMotionController.on( 'deviceConnected' , function() {
+      		console.log( 'A Leap device has been connected.' );
+    	});
+
+    	leapMotionController.on( 'deviceDisconnected' , function() {
+      		console.log( 'A Leap device has been disconnected.' );
+    	});
+
+    	leapMotionController.on( 'ready' , function(){
+
+      	// Ready code will go here
+
+    	});
+
+    	leapMotionController.on( 'frame' , function(data){
+
+			var	frame = data;
+
+			for( var i = 0; i < frame.gestures.length; i++ ){
+
+		    	var gesture = frame.gestures[i];
+		    	var type = gesture.type;
+		    	switch( type ){
+			          case "circle":
+			            onCircle( gesture );
+			            break;
+			          case "swipe":
+			            onSwipe( gesture );
+			            break;
+			          case "screenTap":
+			            onScreenTap( gesture );
+			            break;
+			          case "keyTap":
+			            onKeyTap( gesture );
+			            break;
+   
+        		}
+			}
+    	});
+
+    	function onCircle( gesture ){
+    		var clockwise = false;
+		    if( gesture.normal[2]  <= 0 ){
+		      clockwise = true;
+		    }
+		    var inc;
+		    if(clockwise){
+		    	inc = -1.2;
+		    }else{
+		    	inc = 1.2;
+		    }
+		    var container = document.getElementById('canvas3d');
+
+			var evt = document.createEvent("MouseEvents");
+			evt.initMouseEvent(
+			  'DOMMouseScroll', // in DOMString typeArg,
+			   true,  // in boolean canBubbleArg,
+			   true,  // in boolean cancelableArg,
+			   window,// in views::AbstractView viewArg,
+			   inc,   // in long detailArg,
+			   0,     // in long screenXArg,
+			   0,     // in long screenYArg,
+			   0,     // in long clientXArg,
+			   0,     // in long clientYArg,
+			   0,     // in boolean ctrlKeyArg,
+			   0,     // in boolean altKeyArg,
+			   0,     // in boolean shiftKeyArg,
+			   0,     // in boolean metaKeyArg,
+			   0,     // in unsigned short buttonArg,
+			   null  
+			);
+			container.dispatchEvent(evt);
+    	}
+
+    	function onSwipe( gesture ){
+    		var star = new THREE.Vector3();
+    		var end = new THREE.Vector3();
+    		star.x = gesture.position[1] - gesture.startPosition[1];
+    		star.y = gesture.position[0] - gesture.startPosition[0];
+			star.z = 0;
+			end.copy(star);
+			var axis = new THREE.Vector3( 0, 0, 1);
+			var angle = Math.PI / 2;
+			var matrix = new THREE.Matrix4().makeRotationAxis( axis, angle );
+			star.applyMatrix4( matrix );
+			var matrix = new THREE.Matrix4().makeRotationAxis( star, angle );
+			end.applyMatrix4(matrix);
+    		rotate(star,end,0.05);
+    	}
+
+    	function onScreenTap( gesture ){}
+    	function onKeyTap( gesture ){}
+    	leapMotionController.connect();
 	}
 
 	function initLoader(){
@@ -231,6 +333,43 @@ var MythreeManager = function()
 	function animate() {
 		requestAnimationFrame( animate );
 		controls.update();
+		/*var star = new THREE.Vector3();
+		var end = new THREE.Vector3();
+		star.x = 1;
+		star.y = 1;
+		star.z = 0;
+		end.copy(star);
+		var axis = new THREE.Vector3( 0, 0, 1);
+		var angle = Math.PI / 2;
+		var matrix = new THREE.Matrix4().makeRotationAxis( axis, angle );
+		star.applyMatrix4( matrix );
+		var matrix = new THREE.Matrix4().makeRotationAxis( star, angle );
+		end.applyMatrix4(matrix);
+
+    	rotate(star,end,1);*/
+		/*var a = new THREE.Vector3(1,0,0);
+		var b = new THREE.Vector3(0,0,1);
+    	rotate(a,b,0.01);*/
+	}
+
+	function rotate(start,end,speed) {
+		var axis = new THREE.Vector3();
+	    var vector = controls.target.clone();
+	    var angle = Math.acos( start.dot( end ) / start.length() / end.length() );
+	    if(angle){
+	    	var quaternion = new THREE.Quaternion();
+	    	axis.crossVectors( start, end ).normalize();
+			angle *= speed;
+			quaternion.setFromAxisAngle(axis, -angle );
+			camera.up.applyQuaternion( quaternion );
+
+			end.applyQuaternion( quaternion );
+
+		    camera.position.applyQuaternion(quaternion);
+		    camera.lookAt(vector);
+		    renderer.render(scene, camera);
+	    }
+	    
 	}
 
 
@@ -242,6 +381,7 @@ var MythreeManager = function()
 		initThree();
 		initCamera();
 		initControls();
+		initLeapMotion();
 		initScene();   
 		initLight();
 
@@ -390,4 +530,37 @@ var ZipModel = function(){
 	};
 };
 
- 
+function mouseEvent(type, sx, sy, cx, cy) {
+  var evt;
+  var e = {
+    bubbles: true,
+    cancelable: (type != "mousemove"),
+    view: window,
+    detail: 0,
+    screenX: sx, 
+    screenY: sy,
+    clientX: cx, 
+    clientY: cy,
+    ctrlKey: false,
+    altKey: false,
+    shiftKey: false,
+    metaKey: false,
+    button: 0,
+    relatedTarget: undefined
+  };
+  if (typeof( document.createEvent ) == "function") {
+    evt = document.createEvent("MouseEvents");
+    evt.initMouseEvent(type, 
+      e.bubbles, e.cancelable, e.view, e.detail,
+      e.screenX, e.screenY, e.clientX, e.clientY,
+      e.ctrlKey, e.altKey, e.shiftKey, e.metaKey,
+      e.button, document.body.parentNode);
+  } else if (document.createEventObject) {
+    evt = document.createEventObject();
+    for (prop in e) {
+    evt[prop] = e[prop];
+  }
+    evt.button = { 0:1, 1:4, 2:2 }[evt.button] || evt.button;
+  }
+  return evt;
+}
