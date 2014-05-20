@@ -26,6 +26,27 @@ var LoaderManager = (function() {
 		}
 	}
 
+	function convertToUrl(content){
+		var contentType = '';
+	    var sliceSize = 1024;
+	    var byteCharacters = content;
+	    var bytesLength = byteCharacters.length;
+	    var slicesCount = Math.ceil(bytesLength / sliceSize);
+	    var byteArrays = new Array(slicesCount);
+
+	    for (var sliceIndex = 0; sliceIndex < slicesCount; ++sliceIndex) {
+	        var begin = sliceIndex * sliceSize;
+	        var end = Math.min(begin + sliceSize, bytesLength);
+
+	        var bytes = new Array(end - begin);
+	        for (var offset = begin, i = 0 ; offset < end; ++i, ++offset) {
+	            bytes[i] = byteCharacters[offset].charCodeAt(0);
+	        }
+	        byteArrays[sliceIndex] = new Uint8Array(bytes);
+	    }
+	    return window.URL.createObjectURL(new Blob(byteArrays, { type: contentType }));
+	}
+
 	function loadUnZipFile(name, data) {
 		var extension = name.split('.').pop().toLowerCase();
 		switch (extension) {
@@ -73,7 +94,7 @@ var LoaderManager = (function() {
 		reader.addEventListener('load', function(event) {
 
 			var contents = event.target.result;
-
+			console.log(convertToUrl(contents));
 			var object = new THREE.OBJLoader().parse(contents);
 			object.name = file.name;
 			RenderManager.changeModel(object);

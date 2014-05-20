@@ -32,6 +32,7 @@ var MyManager = (function() {
 	}
 
 	function onFileInputChange(event) {
+		console.log(event.target.files);
 		LoaderManager.loadFile(fileInput.files[0]);
 	}
 
