@@ -17,25 +17,29 @@
         <script type="text/javascript" src="../../zipjs/zip.js"></script>
         <script type="text/javascript" src="../../zipjs/deflate.js"></script>
         <script type="text/javascript" src="../../zipjs/inflate.js"></script>
-        <script src="src/main.js"></script>
         <script src="//js.leapmotion.com/0.2.0-beta1/leap.min.js"></script>
+
+        <script type="text/javascript" src="src/MotionController.js"></script>
+        <script type="text/javascript" src="src/ZipModel.js"></script>
+        <script type="text/javascript" src="src/RenderManager.js"></script>
+        <script type="text/javascript" src="src/PreLoading.js"></script>
+        <script type="text/javascript" src="src/LoaderManager.js"></script>
+        <script type="text/javascript" src="src/MyManager.js"></script>
+
         <style type="text/css">
             div#canvas3d{
                 border: none;
                 cursor: move;
                 width: 100%;
-                height: 100%;
-                margin-left: 5%;
-                margin-right: 5%;
+                height: 88%;
                 background-color: #EEEEEE;
             }
             div#content
             {
                 position : absolute;
-                width:90%;
-                height: 90%;
+                width:95%;
+                height: 95%;
                 margin-left: 2%;
-                margin-right: 2%;
                 background: white;
             }
             body{
@@ -43,10 +47,12 @@
             }
         </style>
     </head>
-    <body onload='MythreeManager.threeStart();'>
+    <body onload='MyManager.start();'>
         <div id="content">
             <div id="canvas3d"></div>
-            <div id="ui"><div>
+            <div id="ui">
+                <div id="messageDiv"></div>
+            <div>
         </div>
     </body>
 </html>
