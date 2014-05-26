@@ -59,7 +59,34 @@ var LoaderManager = (function() {
 	}
 
 	function handleDAE(datas){
+		readAsText(datas.dae, function(contents){
+			loadJPGS(datas, function(jpgs){
+				if(jpgs.length > 0){
+					for(var j in jpgs){
+						contents = contents.replace(new RegExp("./" + jpgs[j].from, "g"), jpgs[j].to);
+					}
+				}
+				var daeObj = convertToUrl(contents);
+				console.log(daeObj);
 
+				renderDAE(daeObj);
+			});
+			
+		});
+
+		function renderDAE(daeObj){
+			var loader = new THREE.ColladaLoader();
+	        loader.options.convertUpAxis = true;
+	        loader.load(daeObj, function(collada) {
+
+	            dae = collada.scene;
+	            skin = collada.skins[0];
+
+	            dae.scale.x = dae.scale.y = dae.scale.z = 0.002;
+	            dae.updateMatrix();
+	            RenderManager.changeModel(dae);
+	        });
+		}
 	}
 
 	function readAsText(file, callback){
@@ -85,16 +112,20 @@ var LoaderManager = (function() {
 		console.log(datas);
 		var i = datas.jpg.length - 1;
 		var jpgs = [];
-		if(i){
+		if(i >= 0){
 			load(jpgs, i, datas, function(){
 				console.log(jpgs);
 				callback(jpgs);
 			});
 		}
+		else{
+			callback(jpgs);
+		}
 
 		function load(jpgs, i, datas, callback){
 			readAsBinaryString(datas.jpg[i].data, function(contents){
 				var jpgUrl = convertToUrl(contents).split("/");
+				console.log(jpgUrl);
 				jpgs.push({
 					from: datas.jpg[i].filename,
 					to: jpgUrl[jpgUrl.length - 1],
@@ -173,20 +204,11 @@ var LoaderManager = (function() {
 		var datas = {
 			type: '',
 			mtl: [],
+			jpg: [],
 		};
 		for(var i = 0; i < files.length; i++){
 			var filename = files[i].name;
-			var extension = filename.split('.').pop().toLowerCase();
-			if(handle.hasOwnProperty(extension)){
-				datas.type = extension;
-				datas[extension] = files[i];
-			}
-			else if(extension === "mtl"){
-				datas.mtl.push(files[i]);
-			}
-			else{
-				console.log("Not Accept Files: " + filename);
-			}
+			SaveToData(datas, filename, files[i]);
 		}
 		console.log(datas);
 
