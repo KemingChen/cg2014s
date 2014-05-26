@@ -174,7 +174,36 @@ var LoaderManager = (function() {
 	}
 
 	function handleSTL(datas){
+		readAsBinaryString(datas.stl, function(contents){
+			var stlUrl = convertToUrl(contents);
+			console.log(stlUrl);
+			renderSTL(stlUrl);
+		});
 
+		function renderSTL(stlUrl){
+			var loader = new THREE.STLLoader();
+	        loader.addEventListener('load', function(event) {
+	            var geometry = event.content;
+	            var material = new THREE.MeshPhongMaterial({
+	                ambient: 0xff5533,
+	                color: 0xff5533,
+	                specular: 0x111111,
+	                shininess: 200
+	            });
+	            var mesh = new THREE.Mesh(geometry, material);
+
+	            mesh.position.set(0, 0, 0);
+	            //mesh.rotation.set( 0, - Math.PI / 2, 0 );
+	            //mesh.scale.set( 10, 10, 10 );
+
+	            mesh.castShadow = true;
+	            mesh.receiveShadow = true;
+
+	            RenderManager.changeModel(mesh);
+
+	        });
+	        loader.load(stlUrl);
+		}
 	}
 
 	function convertToUrl(content){
