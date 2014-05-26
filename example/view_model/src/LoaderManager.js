@@ -6,17 +6,53 @@ var LoaderManager = (function() {
 		"stl": handleSTL,
 	};
 
+	function SaveToData(datas, filename, data){
+		var extension = filename.split('.').pop().toLowerCase();
+		if(handle.hasOwnProperty(extension)){
+			datas.type = extension;
+			datas[extension] = data;
+		}
+		else if(extension === "mtl"){
+			datas.mtl.push(data);
+		}
+		else if(extension === "jpg"){
+			datas.jpg.push({
+				filename: filename,
+				data: data,
+			});
+		}
+		else{
+			console.log("Not Accept Files: " + filename);
+		}
+	}
+
 	function handleZip(datas){
-		var zipModel = new ZipModel();
-		zipModel.getEntries(datas.zip, function(entries) {
+		var zipData = {
+			type: '',
+			mtl: [],
+			jpg: [],
+		};
+		ZipModel.getEntries(datas.zip, function(entries) {
+			var i = entries.length;
 			entries.forEach(function(entry) {
 				writer = new zip.BlobWriter();
 				var writer, zipFileEntry;
+				var loadMessage = "";
 				entry.getData(writer, function(blob) {
 					loadMessage += entry.filename;
-					loadMessage += "<br>";
+					loadMessage += "<br />";
 					MyManager.printMessage(loadMessage);
-					loadUnZipFile(entry.filename, blob);
+
+					console.log(entry.filename);
+					SaveToData(zipData, entry.filename, blob);
+
+					if(i == 1){
+						console.log(zipData);
+						var type = zipData.type;
+						handle[type](zipData);
+						return;
+					}
+					i--;
 				}, function(message) {});
 			});
 		});
@@ -32,25 +68,78 @@ var LoaderManager = (function() {
 			var contents = event.target.result;
 			callback(contents);
 		}, false);
-		reader.readAsText(datas.obj);
+		reader.readAsText(file);
+	}
+
+	function readAsBinaryString(file, callback){
+		var reader = new FileReader();
+		reader.addEventListener('load', function(event) {
+			var contents = event.target.result;
+			callback(contents);
+		}, false);
+		reader.readAsBinaryString(file);
+	}
+
+	function loadJPGS(datas, callback){
+		console.log("loadJPGS");
+		console.log(datas);
+		var i = datas.jpg.length - 1;
+		var jpgs = [];
+		if(i){
+			load(jpgs, i, datas, function(){
+				console.log(jpgs);
+				callback(jpgs);
+			});
+		}
+
+		function load(jpgs, i, datas, callback){
+			readAsBinaryString(datas.jpg[i].data, function(contents){
+				var jpgUrl = convertToUrl(contents).split("/");
+				jpgs.push({
+					from: datas.jpg[i].filename,
+					to: jpgUrl[jpgUrl.length - 1],
+				});
+				if(i === 0){
+					callback();
+					return;
+				}
+				load(jpgs, i - 1, datas, callback)
+			});
+		}
 	}
 
 	function handleOBJ(datas){
-		var i = 0;
-		readAsText(datas[i], function(contents){
+		readAsText(datas.obj, function(contents){
 			var objUrl = convertToUrl(contents);
 			console.log(objUrl);
-		})
-		
-	/*
-		var object = new THREE.OBJLoader().parse(contents);
-		object.name = file.name;
-		RenderManager.changeModel(object);*/
-		var loader = new THREE.OBJMTLLoader();
-		loader.load(objUrl, '', function(object) {
-			object.position.set(0, 0, 0);
-			RenderManager.changeModel(object);
+
+			if(datas.mtl.length > 0){
+				readAsText(datas.mtl[0], function(contents){
+					loadJPGS(datas, function(jpgs){
+						if(jpgs.length > 0){
+							for(var j in jpgs){
+								contents = contents.replace(new RegExp(jpgs[j].from, "g"), jpgs[j].to);
+							}
+						}
+						var mtlUrl = convertToUrl(contents);
+						console.log(contents);
+						console.log(mtlUrl);
+						renderOBJ(objUrl, mtlUrl);
+					});
+				});
+			}
+			else{
+				renderOBJ(objUrl, "");
+			}
 		});
+
+		function renderOBJ(objUrl, mtlUrl){
+			var loader = new THREE.OBJMTLLoader();
+			loader.load(objUrl, mtlUrl, function(object) {
+				object.position.set(0, 0, 0);
+				RenderManager.changeModel(object);
+			});
+		}
 	}
 
 	function handleSTL(datas){
@@ -79,6 +168,7 @@ var LoaderManager = (function() {
 	}
 
 	function loadFiles(files){
+		console.log(files);
 		RenderManager.cleanScene();
 		var datas = {
 			type: '',
@@ -106,17 +196,17 @@ var LoaderManager = (function() {
 		}
 		else{
 			MyManager.printMessage(datas[type]);
-			handle[type](toArray(datas));
+			handle[type](datas);
 		}
+	}
 
-		function toArray(datas){
-			var result = [];
-			result.push(datas[datas.type]);
-			for(var i = 0; i < datas.mtl.length; i++){
-				result.push(datas.mtl[i]);
-			}
-			return result;
+	function toArray(datas){
+		var result = [];
+		result.push(datas[datas.type]);
+		for(var i = 0; i < datas.mtl.length; i++){
+			result.push(datas.mtl[i]);
 		}
+		return result;
 	}
 
 	function loadUnZipFile(name, data) {
