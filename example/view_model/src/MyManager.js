@@ -4,6 +4,7 @@ var MyManager = (function() {
 	function initFileInput() {
 		fileInput = document.createElement('input');
 		fileInput.type = 'file';
+		fileInput.multiple = "2";
 		fileInput.addEventListener('change', onFileInputChange);
 	}
 
@@ -32,8 +33,8 @@ var MyManager = (function() {
 	}
 
 	function onFileInputChange(event) {
-		console.log(event.target.files);
-		LoaderManager.loadFile(fileInput.files[0]);
+		// LoaderManager.loadFile(fileInput.files[0]);
+		LoaderManager.loadFiles(fileInput.files);
 	}
 
 	function start() {
