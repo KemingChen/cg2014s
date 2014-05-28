@@ -6,32 +6,63 @@ var LoaderManager = (function() {
 		"stl": handleSTL,
 	};
 
-	function SaveToData(datas, filename, data){
-		var extension = filename.split('.').pop().toLowerCase();
-		if(handle.hasOwnProperty(extension)){
-			datas.type = extension;
-			datas[extension] = data;
-		}
-		else if(extension === "mtl"){
-			datas.mtl.push(data);
-		}
-		else if(extension === "jpg"){
-			datas.jpg.push({
-				filename: filename,
-				data: data,
-			});
-		}
-		else{
-			console.log("Not Accept Files: " + filename);
-		}
-	}
-
-	function handleZip(datas){
-		var zipData = {
+	var loaderDatas = function(){
+		var datas = {
 			type: '',
 			mtl: [],
 			jpg: [],
 		};
+
+		function SaveToDatas(filename, data){
+			var extension = filename.split('.').pop().toLowerCase();
+			if(handle.hasOwnProperty(extension)){
+				datas.type = extension;
+				datas[extension] = data;
+			}
+			else if(extension === "mtl"){
+				datas.mtl.push(data);
+			}
+			else if(extension === "jpg"){
+				datas.jpg.push({
+					filename: filename,
+					data: data,
+				});
+			}
+			else{
+				console.log("Not Accept Files: " + filename);
+			}
+		}
+
+		return{
+			SaveToDatas: SaveToDatas,
+			datas: datas,
+		}
+	};
+
+	function loadFiles(files, unClean){
+		console.log(files);
+		if(!unClean){
+			RenderManager.cleanScene();
+		}
+		var info = new loaderDatas();
+		for(var i = 0; i < files.length; i++){
+			var filename = files[i].name;
+			info.SaveToDatas(filename, files[i]);
+		}
+		console.log(info.datas);
+
+		var type = info.datas.type;
+		if(type === ""){
+			alert('Unsupported file format.');
+		}
+		else{
+			MyManager.printMessage(info.datas[type]);
+			handle[type](info.datas);
+		}
+	}
+
+	function handleZip(datas){
+		var info = new loaderDatas();
 		ZipModel.getEntries(datas.zip, function(entries) {
 			var i = entries.length;
 			entries.forEach(function(entry) {
@@ -44,12 +75,12 @@ var LoaderManager = (function() {
 					MyManager.printMessage(loadMessage);
 
 					console.log(entry.filename);
-					SaveToData(zipData, entry.filename, blob);
+					info.SaveToDatas(entry.filename, blob);
 
 					if(i == 1){
-						console.log(zipData);
-						var type = zipData.type;
-						handle[type](zipData);
+						console.log(info.datas);
+						var type = info.datas.type;
+						handle[type](info.datas);
 						return;
 					}
 					i--;
@@ -66,18 +97,18 @@ var LoaderManager = (function() {
 						contents = contents.replace(new RegExp("./" + jpgs[j].from, "g"), jpgs[j].to);
 					}
 				}
-				var daeObj = convertToUrl(contents);
-				console.log(daeObj);
+				var daeUrl = convertToUrl(contents);
+				console.log(daeUrl);
 
-				renderDAE(daeObj);
+				renderDAE(daeUrl);
 			});
 			
 		});
 
-		function renderDAE(daeObj){
+		function renderDAE(daeUrl){
 			var loader = new THREE.ColladaLoader();
 			loader.options.convertUpAxis = true;
-			loader.load(daeObj, function(collada) {
+			loader.load(daeUrl, function(collada) {
 
 				dae = collada.scene;
 				skin = collada.skins[0];
@@ -85,56 +116,6 @@ var LoaderManager = (function() {
 				dae.scale.x = dae.scale.y = dae.scale.z = 0.002;
 				dae.updateMatrix();
 				RenderManager.changeModel(dae);
-			});
-		}
-	}
-
-	function readAsText(file, callback){
-		var reader = new FileReader();
-		reader.addEventListener('load', function(event) {
-			var contents = event.target.result;
-			callback(contents);
-		}, false);
-		reader.readAsText(file);
-	}
-
-	function readAsBinaryString(file, callback){
-		var reader = new FileReader();
-		reader.addEventListener('load', function(event) {
-			var contents = event.target.result;
-			callback(contents);
-		}, false);
-		reader.readAsBinaryString(file);
-	}
-
-	function loadJPGS(datas, callback){
-		console.log("loadJPGS");
-		console.log(datas);
-		var i = datas.jpg.length - 1;
-		var jpgs = [];
-		if(i >= 0){
-			load(jpgs, i, datas, function(){
-				console.log(jpgs);
-				callback(jpgs);
-			});
-		}
-		else{
-			callback(jpgs);
-		}
-
-		function load(jpgs, i, datas, callback){
-			readAsBinaryString(datas.jpg[i].data, function(contents){
-				var jpgUrl = convertToUrl(contents).split("/");
-				console.log(jpgUrl);
-				jpgs.push({
-					from: datas.jpg[i].filename,
-					to: jpgUrl[jpgUrl.length - 1],
-				});
-				if(i === 0){
-					callback();
-					return;
-				}
-				load(jpgs, i - 1, datas, callback)
 			});
 		}
 	}
@@ -227,27 +208,53 @@ var LoaderManager = (function() {
 		return window.URL.createObjectURL(new Blob(byteArrays, { type: contentType }));
 	}
 
-	function loadFiles(files){
-		console.log(files);
-		RenderManager.cleanScene();
-		var datas = {
-			type: '',
-			mtl: [],
-			jpg: [],
-		};
-		for(var i = 0; i < files.length; i++){
-			var filename = files[i].name;
-			SaveToData(datas, filename, files[i]);
-		}
-		console.log(datas);
+	function readAsText(file, callback){
+		var reader = new FileReader();
+		reader.addEventListener('load', function(event) {
+			var contents = event.target.result;
+			callback(contents);
+		}, false);
+		reader.readAsText(file);
+	}
 
-		var type = datas.type;
-		if(type === ""){
-			alert('Unsupported file format.');
+	function readAsBinaryString(file, callback){
+		var reader = new FileReader();
+		reader.addEventListener('load', function(event) {
+			var contents = event.target.result;
+			callback(contents);
+		}, false);
+		reader.readAsBinaryString(file);
+	}
+
+	function loadJPGS(datas, callback){
+		console.log("loadJPGS");
+		console.log(datas);
+		var i = datas.jpg.length - 1;
+		var jpgs = [];
+		if(i >= 0){
+			load(jpgs, i, datas, function(){
+				console.log(jpgs);
+				callback(jpgs);
+			});
 		}
 		else{
-			MyManager.printMessage(datas[type]);
-			handle[type](datas);
+			callback(jpgs);
+		}
+
+		function load(jpgs, i, datas, callback){
+			readAsBinaryString(datas.jpg[i].data, function(contents){
+				var jpgUrl = convertToUrl(contents).split("/");
+				console.log(jpgUrl);
+				jpgs.push({
+					from: datas.jpg[i].filename,
+					to: jpgUrl[jpgUrl.length - 1],
+				});
+				if(i === 0){
+					callback();
+					return;
+				}
+				load(jpgs, i - 1, datas, callback)
+			});
 		}
 	}
 

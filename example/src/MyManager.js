@@ -16,7 +16,9 @@ var MyManager = (function() {
 	}
 
 	function initView() {
-		createButton("Load", onImportOptionClick);
+		createButton("Load", function() {
+			fileInput.click();
+		});
 		createButton("Clean", function() {
 			RenderManager.cleanScene();
 			printMessage(" Clean!!");
@@ -27,13 +29,8 @@ var MyManager = (function() {
 	function printMessage(message) {
 		document.getElementById("messageDiv").innerHTML = message;
 	}
-
-	function onImportOptionClick() {
-		fileInput.click();
-	}
-
+	
 	function onFileInputChange(event) {
-		// LoaderManager.loadFile(fileInput.files[0]);
 		LoaderManager.loadFiles(fileInput.files);
 	}
 
