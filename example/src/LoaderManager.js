@@ -41,6 +41,10 @@ var LoaderManager = (function() {
 
 	function loadFiles(files, unClean){
 		console.log(files);
+		if(files.length === 0){
+			console.log("No Files!!!");
+			return;
+		}
 		if(!unClean){
 			RenderManager.cleanScene();
 		}
