@@ -107,15 +107,15 @@ var RenderManager = (function(){
 		renderer.render(scene, camera);
 	}
 
-    function changeModel(obj) {
-        scene.add(obj);
-        render();
-    }
+	function changeModel(obj) {
+		scene.add(obj);
+		render();
+	}
 
 	function cleanScene() {
 		initScene();
 		initLight();
-        render();
+		render();
 	}
 
 	function getCanvasSize(){

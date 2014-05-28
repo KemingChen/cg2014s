@@ -76,16 +76,16 @@ var LoaderManager = (function() {
 
 		function renderDAE(daeObj){
 			var loader = new THREE.ColladaLoader();
-	        loader.options.convertUpAxis = true;
-	        loader.load(daeObj, function(collada) {
+			loader.options.convertUpAxis = true;
+			loader.load(daeObj, function(collada) {
 
-	            dae = collada.scene;
-	            skin = collada.skins[0];
+				dae = collada.scene;
+				skin = collada.skins[0];
 
-	            dae.scale.x = dae.scale.y = dae.scale.z = 0.002;
-	            dae.updateMatrix();
-	            RenderManager.changeModel(dae);
-	        });
+				dae.scale.x = dae.scale.y = dae.scale.z = 0.002;
+				dae.updateMatrix();
+				RenderManager.changeModel(dae);
+			});
 		}
 	}
 
@@ -182,49 +182,49 @@ var LoaderManager = (function() {
 
 		function renderSTL(stlUrl){
 			var loader = new THREE.STLLoader();
-	        loader.addEventListener('load', function(event) {
-	            var geometry = event.content;
-	            var material = new THREE.MeshPhongMaterial({
-	                ambient: 0xff5533,
-	                color: 0xff5533,
-	                specular: 0x111111,
-	                shininess: 200
-	            });
-	            var mesh = new THREE.Mesh(geometry, material);
+			loader.addEventListener('load', function(event) {
+				var geometry = event.content;
+				var material = new THREE.MeshPhongMaterial({
+					ambient: 0xff5533,
+					color: 0xff5533,
+					specular: 0x111111,
+					shininess: 200
+				});
+				var mesh = new THREE.Mesh(geometry, material);
 
-	            mesh.position.set(0, 0, 0);
-	            //mesh.rotation.set( 0, - Math.PI / 2, 0 );
-	            //mesh.scale.set( 10, 10, 10 );
+				mesh.position.set(0, 0, 0);
+				//mesh.rotation.set( 0, - Math.PI / 2, 0 );
+				//mesh.scale.set( 10, 10, 10 );
 
-	            mesh.castShadow = true;
-	            mesh.receiveShadow = true;
+				mesh.castShadow = true;
+				mesh.receiveShadow = true;
 
-	            RenderManager.changeModel(mesh);
+				RenderManager.changeModel(mesh);
 
-	        });
-	        loader.load(stlUrl);
+			});
+			loader.load(stlUrl);
 		}
 	}
 
 	function convertToUrl(content){
 		var contentType = '';
-	    var sliceSize = 1024;
-	    var byteCharacters = content;
-	    var bytesLength = byteCharacters.length;
-	    var slicesCount = Math.ceil(bytesLength / sliceSize);
-	    var byteArrays = new Array(slicesCount);
+		var sliceSize = 1024;
+		var byteCharacters = content;
+		var bytesLength = byteCharacters.length;
+		var slicesCount = Math.ceil(bytesLength / sliceSize);
+		var byteArrays = new Array(slicesCount);
 
-	    for (var sliceIndex = 0; sliceIndex < slicesCount; ++sliceIndex) {
-	        var begin = sliceIndex * sliceSize;
-	        var end = Math.min(begin + sliceSize, bytesLength);
+		for (var sliceIndex = 0; sliceIndex < slicesCount; ++sliceIndex) {
+			var begin = sliceIndex * sliceSize;
+			var end = Math.min(begin + sliceSize, bytesLength);
 
-	        var bytes = new Array(end - begin);
-	        for (var offset = begin, i = 0 ; offset < end; ++i, ++offset) {
-	            bytes[i] = byteCharacters[offset].charCodeAt(0);
-	        }
-	        byteArrays[sliceIndex] = new Uint8Array(bytes);
-	    }
-	    return window.URL.createObjectURL(new Blob(byteArrays, { type: contentType }));
+			var bytes = new Array(end - begin);
+			for (var offset = begin, i = 0 ; offset < end; ++i, ++offset) {
+				bytes[i] = byteCharacters[offset].charCodeAt(0);
+			}
+			byteArrays[sliceIndex] = new Uint8Array(bytes);
+		}
+		return window.URL.createObjectURL(new Blob(byteArrays, { type: contentType }));
 	}
 
 	function loadFiles(files){
@@ -251,8 +251,7 @@ var LoaderManager = (function() {
 		}
 	}
 
-    return {
-        loadFiles: loadFiles,
-        loadUnZipFile: loadUnZipFile
-    };
+	return {
+		loadFiles: loadFiles,
+	};
 })();
