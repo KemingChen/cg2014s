@@ -39,6 +39,31 @@ var LoaderManager = (function() {
 		}
 	};
 
+	function preLoad(){
+		var datas = [
+			"../datas/ZIP/male02.zip", 
+			"../datas/ZIP/slotted_disk.zip", 
+			"../datas/ZIP/monster.zip"
+		];
+		for(var i in datas){
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', datas[i], true);
+			xhr.responseType = 'blob';
+			xhr.filename = datas[i];
+			xhr.onload = function(e) {
+				if (this.status == 200) {
+					var myBlob = this.response;
+					var filename = this.filename;
+					var info = new loaderDatas();
+					info.SaveToDatas(filename, myBlob);
+					var type = info.datas.type;
+					handle[type](info.datas);
+				}
+			};
+			xhr.send();
+		}	
+	}
+
 	function loadFiles(files, unClean){
 		console.log(files);
 		if(files.length === 0){
@@ -264,5 +289,6 @@ var LoaderManager = (function() {
 
 	return {
 		loadFiles: loadFiles,
+		preLoad: preLoad,
 	};
 })();

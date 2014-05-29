@@ -39,6 +39,7 @@ var MyManager = (function() {
 		RenderManager.init();
 		initFileInput();
 		initView();
+		LoaderManager.preLoad();
 	}
 
     return {
