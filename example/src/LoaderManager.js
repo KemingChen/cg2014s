@@ -39,7 +39,7 @@ var LoaderManager = (function() {
 		}
 	};
 
-	function preLoad(){
+	function preLoad(){ // only support handle one file, suggest using zip file
 		var datas = [
 			"../datas/ZIP/male02.zip", 
 			"../datas/ZIP/slotted_disk.zip", 
@@ -140,10 +140,12 @@ var LoaderManager = (function() {
 			loader.load(daeUrl, function(collada) {
 
 				dae = collada.scene;
-				skin = collada.skins[0];
+				TestDAE = dae;
+				console.log(dae);
+				// skin = collada.skins[0];
 
-				dae.scale.x = dae.scale.y = dae.scale.z = 0.002;
-				dae.updateMatrix();
+				// dae.scale.x = dae.scale.y = dae.scale.z = 0.002;
+				// dae.updateMatrix();
 				RenderManager.changeModel(dae);
 			});
 		}
@@ -152,7 +154,7 @@ var LoaderManager = (function() {
 	function handleOBJ(datas){
 		readAsText(datas.obj, function(contents){
 			var objUrl = convertToUrl(contents);
-			console.log(objUrl);
+			// console.log(objUrl);
 
 			if(datas.mtl.length > 0){
 				readAsText(datas.mtl[0], function(contents){
@@ -163,8 +165,8 @@ var LoaderManager = (function() {
 							}
 						}
 						var mtlUrl = convertToUrl(contents);
-						console.log(contents);
-						console.log(mtlUrl);
+						// console.log(contents);
+						// console.log(mtlUrl);
 						renderOBJ(objUrl, mtlUrl);
 					});
 				});
@@ -203,8 +205,8 @@ var LoaderManager = (function() {
 				var mesh = new THREE.Mesh(geometry, material);
 
 				mesh.position.set(0, 0, 0);
-				//mesh.rotation.set( 0, - Math.PI / 2, 0 );
-				//mesh.scale.set( 10, 10, 10 );
+				// mesh.rotation.set( 0, - Math.PI / 2, 0 );
+				mesh.scale.set( 10, 10, 10 );
 
 				mesh.castShadow = true;
 				mesh.receiveShadow = true;
@@ -273,7 +275,7 @@ var LoaderManager = (function() {
 		function load(jpgs, i, datas, callback){
 			readAsBinaryString(datas.jpg[i].data, function(contents){
 				var jpgUrl = convertToUrl(contents).split("/");
-				console.log(jpgUrl);
+				// console.log(jpgUrl);
 				jpgs.push({
 					from: datas.jpg[i].filename,
 					to: jpgUrl[jpgUrl.length - 1],
