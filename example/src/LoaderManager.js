@@ -6,6 +6,14 @@ var LoaderManager = (function() {
 		"stl": handleSTL,
 	};
 
+	var modelName = " ";
+
+	var handelModel = function(object, modelName){
+		//default handel function
+		RenderManager.changeModel(object);
+		MyManager.printMessage(modelName);
+	};
+
 	var loaderDatas = function(){
 		var datas = {
 			type: '',
@@ -99,9 +107,10 @@ var LoaderManager = (function() {
 				var writer, zipFileEntry;
 				var loadMessage = "";
 				entry.getData(writer, function(blob) {
-					loadMessage += entry.filename;
-					loadMessage += "<br />";
-					MyManager.printMessage(loadMessage);
+					modelName = entry.filename;
+					//loadMessage += entry.filename;
+					//loadMessage += "<br />";
+					//MyManager.printMessage(loadMessage);
 
 					console.log(entry.filename);
 					info.SaveToDatas(entry.filename, blob);
@@ -146,7 +155,8 @@ var LoaderManager = (function() {
 
 				// dae.scale.x = dae.scale.y = dae.scale.z = 0.002;
 				// dae.updateMatrix();
-				RenderManager.changeModel(dae);
+				//RenderManager.changeModel(dae);
+				handelModel(dae,modelName);
 			});
 		}
 	}
@@ -180,7 +190,8 @@ var LoaderManager = (function() {
 			var loader = new THREE.OBJMTLLoader();
 			loader.load(objUrl, mtlUrl, function(object) {
 				object.position.set(0, 0, 0);
-				RenderManager.changeModel(object);
+				//RenderManager.changeModel(object);
+				handelModel(object, modelName);
 			});
 		}
 	}
@@ -211,7 +222,8 @@ var LoaderManager = (function() {
 				mesh.castShadow = true;
 				mesh.receiveShadow = true;
 
-				RenderManager.changeModel(mesh);
+				//RenderManager.changeModel(mesh);
+				handelModel(mesh,modelName);
 
 			});
 			loader.load(stlUrl);
@@ -289,8 +301,34 @@ var LoaderManager = (function() {
 		}
 	}
 
+	function loadFilesAndDoSomething(files,handel){
+
+		handelModel = handel;
+		console.log(files);
+		if(files.length === 0){
+			console.log("No Files!!!");
+			return;
+		}
+		
+		var info = new loaderDatas();
+		for(var i = 0; i < files.length; i++){
+			var filename = files[i].name;
+			info.SaveToDatas(filename, files[i]);
+		}
+		console.log(info.datas);
+
+		var type = info.datas.type;
+		if(type === ""){
+			alert('Unsupported file format.');
+		}
+		else{
+			handle[type](info.datas);
+		}
+	}
+
 	return {
 		loadFiles: loadFiles,
+		loadFilesAndDoSomething : loadFilesAndDoSomething,
 		preLoad: preLoad,
 	};
 })();

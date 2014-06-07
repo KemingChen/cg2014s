@@ -31,7 +31,10 @@ var MyManager = (function() {
 	}
 	
 	function onFileInputChange(event) {
-		LoaderManager.loadFiles(fileInput.files);
+		//LoaderManager.loadFiles(fileInput.files);
+		LoaderManager.loadFilesAndDoSomething(fileInput.files, function(object, modelName) {
+			RenderManager.changeModel(object);
+		});
 	}
 
 	function start() {
