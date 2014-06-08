@@ -47,8 +47,7 @@ var LoaderManager = function(handleRender) {
 		}
 	};
 
-	function loadFilesAndHandle_Local(files, handel){
-		handelModel = handel;
+	function loadFilesAndHandle_Local(files){
 		console.log(files);
 		if(files.length === 0){
 			console.log("No Files!!!");
