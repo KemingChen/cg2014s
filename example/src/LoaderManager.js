@@ -1,4 +1,8 @@
-var LoaderManager = (function() {
+var LoaderManager = function(handleRender) {
+	if(!handleRender){
+		throw "LoaderManager Error: No handleRender Object";
+	}
+
 	var handle = {
 		"zip": handleZip,
 		"dae": handleDAE,
@@ -7,12 +11,7 @@ var LoaderManager = (function() {
 	};
 
 	var modelName = " ";
-
-	var handelModel = function(object, modelName){
-		//default handel function
-		RenderManager.changeModel(object);
-		MyManager.printMessage(modelName);
-	};
+	var handelModel = handleRender;
 
 	var loaderDatas = function(){
 		var datas = {
@@ -22,6 +21,7 @@ var LoaderManager = (function() {
 		};
 
 		function SaveToDatas(filename, data){
+			console.log(filename);
 			var extension = filename.split('.').pop().toLowerCase();
 			if(handle.hasOwnProperty(extension)){
 				datas.type = extension;
@@ -47,40 +47,14 @@ var LoaderManager = (function() {
 		}
 	};
 
-	function preLoad(){ // only support handle one file, suggest using zip file
-		var datas = [
-			"../datas/ZIP/male02.zip", 
-			"../datas/ZIP/slotted_disk.zip", 
-			"../datas/ZIP/monster.zip"
-		];
-		for(var i in datas){
-			var xhr = new XMLHttpRequest();
-			xhr.open('GET', datas[i], true);
-			xhr.responseType = 'blob';
-			xhr.filename = datas[i];
-			xhr.onload = function(e) {
-				if (this.status == 200) {
-					var myBlob = this.response;
-					var filename = this.filename;
-					var info = new loaderDatas();
-					info.SaveToDatas(filename, myBlob);
-					var type = info.datas.type;
-					handle[type](info.datas);
-				}
-			};
-			xhr.send();
-		}	
-	}
-
-	function loadFiles(files, unClean){
+	function loadFilesAndHandle_Local(files, handel){
+		handelModel = handel;
 		console.log(files);
 		if(files.length === 0){
 			console.log("No Files!!!");
 			return;
 		}
-		if(!unClean){
-			RenderManager.cleanScene();
-		}
+		
 		var info = new loaderDatas();
 		for(var i = 0; i < files.length; i++){
 			var filename = files[i].name;
@@ -93,9 +67,34 @@ var LoaderManager = (function() {
 			alert('Unsupported file format.');
 		}
 		else{
-			MyManager.printMessage(info.datas[type]);
 			handle[type](info.datas);
 		}
+	}
+
+	function loadFilesAndHandle_Server(zips){ // only support handle one file, suggest using zip file
+		console.log(zips);
+		if(zips.length === 0){
+			console.log("No Files!!!");
+			return;
+		}
+
+		for(var i in zips){
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', zips[i], true);
+			xhr.responseType = 'blob';
+			xhr.filename = zips[i];
+			xhr.onload = function(e) {
+				if (this.status == 200) {
+					var myBlob = this.response;
+					var filename = this.filename;
+					var info = new loaderDatas();
+					info.SaveToDatas(filename, myBlob);
+					var type = info.datas.type;
+					handle[type](info.datas);
+				}
+			};
+			xhr.send();
+		}	
 	}
 
 	function handleZip(datas){
@@ -156,7 +155,7 @@ var LoaderManager = (function() {
 				// dae.scale.x = dae.scale.y = dae.scale.z = 0.002;
 				// dae.updateMatrix();
 				//RenderManager.changeModel(dae);
-				handelModel(dae,modelName);
+				handelModel(dae, modelName);
 			});
 		}
 	}
@@ -223,7 +222,7 @@ var LoaderManager = (function() {
 				mesh.receiveShadow = true;
 
 				//RenderManager.changeModel(mesh);
-				handelModel(mesh,modelName);
+				handelModel(mesh, modelName);
 
 			});
 			loader.load(stlUrl);
@@ -301,34 +300,26 @@ var LoaderManager = (function() {
 		}
 	}
 
-	function loadFilesAndDoSomething(files,handel){
+	return {
+		loadFilesAndHandle_Local : loadFilesAndHandle_Local,
+		loadFilesAndHandle_Server: loadFilesAndHandle_Server,
+	};
+};
 
-		handelModel = handel;
-		console.log(files);
-		if(files.length === 0){
-			console.log("No Files!!!");
-			return;
-		}
-		
-		var info = new loaderDatas();
-		for(var i = 0; i < files.length; i++){
-			var filename = files[i].name;
-			info.SaveToDatas(filename, files[i]);
-		}
-		console.log(info.datas);
+var ZipModel = (function() {
+	var obj = window;
+	var requestFileSystem = obj.webkitRequestFileSystem || obj.mozRequestFileSystem || obj.requestFileSystem;
+	var URL = obj.webkitURL || obj.mozURL || obj.URL;
 
-		var type = info.datas.type;
-		if(type === ""){
-			alert('Unsupported file format.');
-		}
-		else{
-			handle[type](info.datas);
-		}
+	function onerror(message) {
+		alert(message);
 	}
 
 	return {
-		loadFiles: loadFiles,
-		loadFilesAndDoSomething : loadFilesAndDoSomething,
-		preLoad: preLoad,
+		getEntries: function(file, onend) {
+			zip.createReader(new zip.BlobReader(file), function(zipReader) {
+				zipReader.getEntries(onend);
+			}, onerror);
+		}
 	};
 })();

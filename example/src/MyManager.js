@@ -1,5 +1,11 @@
 var MyManager = (function() {
 	var fileInput;
+	var loaderManager = new LoaderManager(handleRender);
+
+	function handleRender(object, modelName) {
+		MyManager.printMessage(modelName);
+		RenderManager.changeModel(object);
+	}
 
 	function initFileInput() {
 		fileInput = document.createElement('input');
@@ -32,9 +38,7 @@ var MyManager = (function() {
 	
 	function onFileInputChange(event) {
 		//LoaderManager.loadFiles(fileInput.files);
-		LoaderManager.loadFilesAndDoSomething(fileInput.files, function(object, modelName) {
-			RenderManager.changeModel(object);
-		});
+		loaderManager.loadFilesAndHandle_Local(fileInput.files);
 	}
 
 	function start() {
@@ -42,7 +46,11 @@ var MyManager = (function() {
 		RenderManager.init();
 		initFileInput();
 		initView();
-		LoaderManager.preLoad();
+		loaderManager.loadFilesAndHandle_Server([
+			"../datas/ZIP/male02.zip", 
+			"../datas/ZIP/slotted_disk.zip", 
+			"../datas/ZIP/monster.zip"
+		]);
 	}
 
     return {
