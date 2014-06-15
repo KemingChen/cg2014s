@@ -13,6 +13,10 @@ var RenderManager = (function() {
 	var plane = null;
 	var offset = new THREE.Vector3();
 
+	var transformControl = null;
+	
+	var group = new THREE.Object3D();
+
 	function init(){
 		renderer.setClearColor(0xFFFFFF, 1.0);
 		document.getElementById(canvas3dId).appendChild(renderer.domElement);
@@ -21,68 +25,41 @@ var RenderManager = (function() {
 		initMouseSelect();
 		initSize();
 		initScene();
-		initPlane();
+		//initPlane();
 		initLight();
 		initCamera();
 		initControls();
+		initTransformControl();
 		animate();
 	}
 
 
 	function initMouseSelect() {
 		renderer.domElement.addEventListener('mousedown', onDocumentMouseDown, false);
-		renderer.domElement.addEventListener('mousemove', onDocumentMouseMove, false);
-		renderer.domElement.addEventListener('mouseup', onDocumentMouseUp, false);
-
-		var tmp = null;
 
 		function onDocumentMouseDown(event) {
 			var raycaster = raycastObject(event.clientX, event.clientY);
 
-			var selectableObject = [];
-			for (var i = 0; i <= scene.children.length - 1; i++) {
-				if(scene.children[i] != plane)
-					selectableObject.push(scene.children[i]);
-				
-			};
+			var intersects = raycaster.intersectObjects(group.children, true);
+			var isInterTransformControl = raycaster.intersectObjects(transformControl.children, true);
 
-			var intersects = raycaster.intersectObjects(selectableObject, true);
 			if (intersects.length > 0) {
+
 				console.log("yes");
 				controls.enabled = false;
 				SELECTED = intersects[ 0 ].object;
-				plane.position.copy( SELECTED.position );
-				plane.lookAt( camera.position );
-				var intersects = raycaster.intersectObject(plane);
-				offset.copy( intersects[ 0 ].point ).sub( plane.position );
-				//tmp = raycaster.ray.direction;
-			}
-		}
-
-		function onDocumentMouseMove(event) {
-			if(SELECTED) {
-				var raycaster = raycastObject(event.clientX, event.clientY);
-				/*var offset = new THREE.Vector3();
-				offset.copy(tmp);
-				offset.sub(raycaster.ray.direction);
-				tmp = raycaster.ray.direction;
-				SELECTED.position.sub(offset);*/
-				var intersects = raycaster.intersectObject( plane );
-				SELECTED.position.copy( intersects[ 0 ].point.sub( offset ) );
-				
-
+				transformControl.attach(SELECTED);
+				scene.add(transformControl);
 				render();
-				//var intersects = raycaster.intersectObject(SELECTED);
-				//SELECTED.position.copy(intersects[ 0 ].point);
-			}
-		}
 
-		function onDocumentMouseUp(event) {
-			if(SELECTED) {
-				
+			}else {
+
+				if(transformControl.isInterMouse()){return;}
 				controls.enabled = true;
-				plane.position.copy( SELECTED.position );
+				transformControl.detach(SELECTED);
 				SELECTED = null;
+				scene.remove(transformControl);
+				render();
 			}
 		}
 	}
@@ -94,6 +71,7 @@ var RenderManager = (function() {
 
 	function initScene(){
 		scene = new THREE.Scene();	
+		scene.add(group);
 	}
 
 	function initPlane(){
@@ -146,6 +124,11 @@ var RenderManager = (function() {
 		});
 	}
 
+	function initTransformControl() {
+		transformControl = new THREE.TransformControls( camera, renderer.domElement );
+		transformControl.addEventListener( 'change', render );
+	}
+
 	function onWindowResize() {
 		var canvasSize = getCanvasSize();
 		camera.aspect = canvasSize.width / canvasSize.height; //window.innerWidth / window.innerHeight;
@@ -185,7 +168,7 @@ var RenderManager = (function() {
 	}
 
 	function changeModel(obj) {
-		scene.add(obj);
+		group.add(obj);
 		render();
 	}
 
@@ -209,7 +192,7 @@ var RenderManager = (function() {
 
 	function cleanScene() {
 		initScene();
-		initPlane();
+		//initPlane();
 		initLight();
 		render();
 	}
