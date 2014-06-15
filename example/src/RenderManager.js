@@ -62,6 +62,32 @@ var RenderManager = (function() {
 				render();
 			}
 		}
+
+		window.addEventListener( 'keydown', function ( event ) {
+		            //console.log(event.which);
+		            switch ( event.keyCode ) {
+		              case 81: // Q
+		                transformControl.setSpace( transformControl.space == "local" ? "world" : "local" );
+		                break;
+		              case 87: // W
+		                transformControl.setMode( "translate" );
+		                break;
+		              case 69: // E
+		                transformControl.setMode( "rotate" );
+		                break;
+		              case 82: // R
+		                transformControl.setMode( "scale" );
+		                break;
+					case 187:
+					case 107: // +,=,num+
+						transformControl.setSize( control.size + 0.1 );
+						break;
+					case 189:
+					case 10: // -,_,num-
+						transformControl.setSize( Math.max(transformControl.size - 0.1, 0.1 ) );
+						break;
+		            }            
+        		});
 	}
 
 	function initSize(){
