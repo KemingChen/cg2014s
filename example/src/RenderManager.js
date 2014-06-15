@@ -25,7 +25,7 @@ var RenderManager = (function() {
 		initMouseSelect();
 		initSize();
 		initScene();
-		//initPlane();
+		initPlane();
 		initLight();
 		initCamera();
 		initControls();
@@ -46,7 +46,7 @@ var RenderManager = (function() {
 			if (intersects.length > 0) {
 
 				console.log("yes");
-				controls.enabled = false;
+				
 				SELECTED = intersects[ 0 ].object;
 				transformControl.attach(SELECTED);
 				scene.add(transformControl);
@@ -55,11 +55,17 @@ var RenderManager = (function() {
 			}else {
 
 				if(transformControl.isInterMouse()){return;}
-				controls.enabled = true;
+				
 				transformControl.detach(SELECTED);
 				SELECTED = null;
 				scene.remove(transformControl);
 				render();
+			}
+
+			if(transformControl.isInterMouse()){
+				controls.enabled = false;
+			}else{
+				controls.enabled = true;
 			}
 		}
 
@@ -80,7 +86,7 @@ var RenderManager = (function() {
 		                break;
 					case 187:
 					case 107: // +,=,num+
-						transformControl.setSize( control.size + 0.1 );
+						transformControl.setSize( transformControl.size + 0.1 );
 						break;
 					case 189:
 					case 10: // -,_,num-
@@ -97,11 +103,14 @@ var RenderManager = (function() {
 
 	function initScene(){
 		scene = new THREE.Scene();	
+		scene.remove(group);
+		group = new THREE.Object3D();
 		scene.add(group);
 	}
 
 	function initPlane(){
 		plane = new THREE.Mesh( new THREE.PlaneGeometry( 1000, 1000, 20, 20 ), new THREE.MeshBasicMaterial( { color: 0x000000, opacity: 0.25, transparent: true, wireframe: true } ) );
+		plane.rotation.x = Math.PI / 2;
 		//plane.visible = false;
 		scene.add( plane );
 	}
@@ -119,7 +128,7 @@ var RenderManager = (function() {
 
 	function initCamera() {
 		var canvasSize = getCanvasSize();
-		camera = new THREE.PerspectiveCamera(60, canvasSize.width / canvasSize.height, 1, 1000);
+		camera = new THREE.PerspectiveCamera(60, canvasSize.width / canvasSize.height, 1, 100000);
 
 		camera.position.x = 0;
 		camera.position.y = 50;
@@ -218,7 +227,7 @@ var RenderManager = (function() {
 
 	function cleanScene() {
 		initScene();
-		//initPlane();
+		initPlane();
 		initLight();
 		render();
 	}
