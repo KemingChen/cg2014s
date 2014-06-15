@@ -43,7 +43,7 @@ var RenderManager = (function() {
 			var intersects = raycaster.intersectObjects(group.children, true);
 			var isInterTransformControl = raycaster.intersectObjects(transformControl.children, true);
 
-			if (intersects.length > 0) {
+			if (intersects.length > 0 && !transformControl.isInterMouse()) {
 
 				console.log("yes");
 				

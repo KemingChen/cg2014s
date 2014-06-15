@@ -50,9 +50,12 @@ var MyManager = (function() {
 		initFileInput();
 		initView();
 		loaderManager.loadFilesAndHandle_Server([
-			"../datas/ZIP/male02.zip", 
-			"../datas/ZIP/slotted_disk.zip", 
-			"../datas/ZIP/monster.zip"
+			"../datas/skull-noteeth.zip",
+			"../datas/teeth-up.zip",
+			"../datas/teeth-down.zip"
+			//"../datas/ZIP/male02.zip", 
+			//"../datas/ZIP/slotted_disk.zip", 
+			//"../datas/ZIP/monster.zip"
 		]);
 	}
 

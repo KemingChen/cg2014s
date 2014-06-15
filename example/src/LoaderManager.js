@@ -215,7 +215,7 @@ var LoaderManager = function(handleRender) {
 
 				mesh.position.set(0, 0, 0);
 				// mesh.rotation.set( 0, - Math.PI / 2, 0 );
-				mesh.scale.set( 10, 10, 10 );
+				mesh.scale.set( 1, 1, 1 );
 
 				mesh.castShadow = true;
 				mesh.receiveShadow = true;
