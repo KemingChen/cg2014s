@@ -777,7 +777,7 @@
 					parentScale.setFromMatrixScale( tempMatrix.getInverse( scope.object.parent.matrixWorld ) );
 
 					offset.copy( planeIntersect.point );
-
+					
 				}
 
 			}
