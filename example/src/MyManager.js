@@ -39,7 +39,7 @@ var MyManager = (function() {
 	function onFileInputChange(event) {
 		//LoaderManager.loadFiles(fileInput.files);
 		if(fileInput.files.length > 0){
-			RenderManager.cleanScene();
+			//RenderManager.cleanScene();
 			loaderManager.loadFilesAndHandle_Local(fileInput.files);
 		}
 	}
