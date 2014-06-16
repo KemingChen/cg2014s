@@ -38,15 +38,14 @@ var RenderManager = (function() {
 		renderer.domElement.addEventListener('mousedown', onDocumentMouseDown, false);
 
 		function onDocumentMouseDown(event) {
-			var raycaster = raycastObject(event.clientX, event.clientY);
-
+			var raycaster = raycastObject(event.offsetX, event.offsetY);
+			console.log(group.children);
 			var intersects = raycaster.intersectObjects(group.children, true);
 			var isInterTransformControl = raycaster.intersectObjects(transformControl.children, true);
 
 			if (intersects.length > 0 && !transformControl.isInterMouse()) {
 
 				console.log("yes");
-				
 				SELECTED = intersects[ 0 ].object;
 				transformControl.attach(SELECTED);
 				scene.add(transformControl);
@@ -219,8 +218,8 @@ var RenderManager = (function() {
 		var direction = vector.sub( camera.position ).normalize();
 		var raycaster = new THREE.Raycaster(origin, direction);
 		//--- debug view ---
-		//scene.add( new THREE.ArrowHelper(direction, origin, 50, 0x000000));
-		//render();
+		scene.add( new THREE.ArrowHelper(direction, origin, 50, 0x000000));
+		render();
 		//------------------
 		return raycaster;
 	}
