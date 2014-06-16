@@ -218,8 +218,8 @@ var RenderManager = (function() {
 		var direction = vector.sub( camera.position ).normalize();
 		var raycaster = new THREE.Raycaster(origin, direction);
 		//--- debug view ---
-		scene.add( new THREE.ArrowHelper(direction, origin, 50, 0x000000));
-		render();
+		// scene.add( new THREE.ArrowHelper(direction, origin, 50, 0x000000));
+		// render();
 		//------------------
 		return raycaster;
 	}
